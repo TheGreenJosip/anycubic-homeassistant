@@ -194,4 +194,5 @@ class MonoXExtraSensor(MonoXSensor):
         used in the UI. When the device is not printing, we get no information
         on these sensors, so they become unavailable. If self.native_value is
         None, we return False to indicate that the sensor is unavailable."""
-        return self.sensor_attr_name is not None
+        extras = self.bridge.get_last_status_extras()
+        return extras.get(self.sensor_attr_name) is not None

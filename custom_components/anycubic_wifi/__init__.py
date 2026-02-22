@@ -81,22 +81,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         event a communication-type excepiton occurs, Home Assistant will
         declare this entry unable to be setup, requiring a reconfiguration or
         restart to bring us back online."""
-    # Prepare storage in hass.data
+    # setup the basic datastructure in hass.
+
     entry_location = hass.data[DOMAIN].setdefault(entry.entry_id, {})
 
-    # Store polling interval
+    # setup the data bridge.
     poll_delta = timedelta(seconds=POLL_INTERVAL)
     entry_location[CONF_SCAN_INTERVAL] = poll_delta
-
-    # Initialize and refresh data bridge
     bridge = get_new_data_bridge(hass, entry)
     await bridge.async_config_entry_first_refresh()
     entry_location["coordinator"] = bridge
 
-    # Forward platforms in batch (preferred over async_forward_entry_setup loop)
+    # Setup the sensors (HA API changed: use async_forward_entry_setups)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Listen for option updates
+    # Setup options listener.
     entry.async_on_unload(entry.add_update_listener(opt_update_listener))
     return True
 
@@ -119,11 +118,8 @@ def get_new_data_bridge(hass, entry) -> AnycubicDataBridge:
 async def opt_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """When an entry changes, the update_listener is called.  This is where
         live configuration updates are handled. The procedure for this
-        particular integration is to simply refresh the entity. Refresh occurs
-        by removing the existing device from the registry, thereby taking all
-        the device entities with the old device and removing them. Then the
-        device is added back to the registry during async_setup_entry. This
-        will trigger a new entity setup.
+        particular integration is to reload the entry, which will trigger
+        a fresh setup with the new options.
     :param hass: HomeAssistant api reference to all of the Home Assistant data.
     :param entry: The config entry of item being setup."""
     # find and remove the device from the registry
@@ -133,8 +129,7 @@ async def opt_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         registry.async_remove_device(device.id)
     except AttributeError:
         pass
-    # setup the device again
-    await async_setup_entry(hass, entry)
+    # Reload the entry to apply new options
     await hass.config_entries.async_reload(entry.entry_id)
 
 

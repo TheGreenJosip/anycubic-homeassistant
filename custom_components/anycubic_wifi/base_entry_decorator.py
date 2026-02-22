@@ -110,14 +110,19 @@ class AnycubicEntityBaseDecorator(
         options.
         :return: the state attributes unless otherwise blocked."""
         extras = self.bridge.get_last_status_extras()
-        # If user option no extras or hide extras is set, then we dont report.
-        if (
-            self.entry.options[OPT_NO_EXTRA_DATA]
-            or not self.entry.options[OPT_HIDE_EXTRA_SENSORS]
-        ):
+        
+        # If no_extras option is set, don't include any extras
+        if self.entry.options.get(OPT_NO_EXTRA_DATA):
             extras = {}
+        # If hide_extra_sensors is False (meaning extras are shown as separate sensors),
+        # don't duplicate them as attributes
+        elif not self.entry.options.get(OPT_HIDE_EXTRA_SENSORS):
+            extras = {}
+        # Otherwise, hide_extra_sensors is True, so include extras as attributes
 
         # if user option Hide IP is set, then we hide the IP as well.
-        if not self.entry.options[OPT_HIDE_IP]:
+        if self.entry.options.get(OPT_HIDE_IP):
+            extras.pop(CONF_HOST, None)
+        else:
             extras.update({CONF_HOST: self.entry.data[CONF_HOST]})
         return extras

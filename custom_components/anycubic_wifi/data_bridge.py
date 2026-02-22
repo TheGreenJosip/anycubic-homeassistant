@@ -152,8 +152,9 @@ class AnycubicDataBridge(DataUpdateCoordinator):
     def _maybe_add_host_to_extras(self):
         """If the extra data does not already contain the host, add it.
         This is used to provide the host to the sensor extras."""
-        if not self._config_entry.options[OPT_NO_EXTRA_DATA] and not hasattr(
-            self._reported_status_extras, CONF_HOST
+        if (
+            not self._config_entry.options[OPT_NO_EXTRA_DATA]
+            and CONF_HOST not in self._reported_status_extras
         ):
             self._reported_status_extras.update(
                 {CONF_HOST: self._monox.ip_address}

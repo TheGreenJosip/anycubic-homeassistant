@@ -138,10 +138,11 @@ def _parse_extras(raw_extras: dict, convert_seconds: bool) -> dict | None:
     if not hasattr(raw_extras, API_STATUS):
         # we received a response that does not have the status
         return extras
-    if convert_seconds and hasattr(raw_extras, API_SECONDS_ELAPSE):
-        # We need to convert the time from minutes to seconds.
-        seconds_elapsed = int(raw_extras.seconds_elapse) / 60
-        raw_extras.__dict__[API_SECONDS_ELAPSE] = seconds_elapsed
+    if convert_seconds:
+        if hasattr(raw_extras, "seconds_elapse"):
+            raw_extras.__dict__["seconds_elapse"] = int(raw_extras.seconds_elapse) * 60
+        if hasattr(raw_extras, "seconds_remaining"):
+            raw_extras.__dict__["seconds_remaining"] = int(raw_extras.seconds_remaining) * 60
 
     # Loop through all the expected sensors and add them to the extras dict
     for [
@@ -167,10 +168,10 @@ def _parse_extras(raw_extras: dict, convert_seconds: bool) -> dict | None:
                     case const.TYPE_ML:
                         # get the raw numeric value of the sensor without the
                         # extra stuff
-                        int_value: int = raw_value.replace(
+                        val = raw_value.replace(
                             TYPE_ML, ""
                         ).replace(API_TILDE, "")
-                        extras[hass_sensor_name] = int_value
+                        extras[hass_sensor_name] = float(val)
                     case const.TYPE_INT:
                         extras[hass_sensor_name] = int(raw_value)
                     case const.TYPE_TIME:

@@ -10,7 +10,7 @@ from homeassistant.const import (
 from uart_wifi.communication import MonoXStatus
 
 DOMAIN = "anycubic_wifi"
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 ATTR_MANUFACTURER = "Anycubic"
 SUPPORTED_MACS = ["28:6d:cd"]
 ANYCUBIC_3D_PRINTER_NAME = "Anycubic 3D Printer"
